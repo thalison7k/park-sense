@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Car, ParkingCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Car, ParkingCircle, AlertTriangle, TrendingUp, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Header } from '@/components/dashboard/Header';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { ParkingGrid } from '@/components/dashboard/ParkingGrid';
@@ -102,6 +103,17 @@ const Index = () => {
           <p className="mt-2 text-xs">
             Desenvolvido pela <span className="text-gradient font-semibold">GAMATEC</span> — PIV
           </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4 border-primary/50 hover:bg-primary/10"
+            asChild
+          >
+            <a href="https://gamatec-digital-spark.lovable.app/" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Visitar GAMATEC
+            </a>
+          </Button>
         </footer>
       </div>
     </div>
