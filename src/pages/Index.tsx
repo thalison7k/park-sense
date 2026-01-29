@@ -99,6 +99,9 @@ const Index = () => {
             <span className="text-gradient font-semibold">GAMATEC</span>
             <span>— Digital Spark © 2025</span>
           </p>
+          <p className="mt-2 text-xs">
+            Desenvolvido pela <span className="text-gradient font-semibold">GAMATEC</span> — PIV
+          </p>
         </footer>
       </div>
     </div>
