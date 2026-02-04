@@ -1,5 +1,14 @@
-import { Radio, Wifi, WifiOff, Settings } from 'lucide-react';
+import { Radio, Wifi, WifiOff, Settings, Sun, Moon, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useTheme } from '@/hooks/useTheme';
 
 interface HeaderProps {
   onlineCount: number;
@@ -7,6 +16,15 @@ interface HeaderProps {
 }
 
 export const Header = ({ onlineCount, totalCount }: HeaderProps) => {
+  const { theme, toggleTheme } = useTheme();
+
+  const handleVLibrasToggle = () => {
+    const vLibrasButton = document.querySelector('[vw-access-button]') as HTMLElement;
+    if (vLibrasButton) {
+      vLibrasButton.click();
+    }
+  };
+
   return (
     <header className="glass-card rounded-2xl p-6 mb-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -42,9 +60,34 @@ export const Header = ({ onlineCount, totalCount }: HeaderProps) => {
             </span>
           </div>
           
-          <Button variant="outline" size="icon" className="border-border/50 hover:bg-secondary">
-            <Settings className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="border-border/50 hover:bg-secondary">
+                <Settings className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-card border-border z-50">
+              <DropdownMenuLabel>Configurações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
+                {theme === 'dark' ? (
+                  <>
+                    <Sun className="w-4 h-4 mr-2" />
+                    Tema Claro
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 mr-2" />
+                    Tema Escuro
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleVLibrasToggle} className="cursor-pointer">
+                <Hand className="w-4 h-4 mr-2" />
+                VLibras (Acessibilidade)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
