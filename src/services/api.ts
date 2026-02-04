@@ -3,8 +3,9 @@
 export const API_URL = "http://127.0.0.1:8000";
 
 /**
- * Estrutura REAL do backend
- * /vagaA01.json retorna uma LISTA de registros
+ * Estrutura REAL retornada pelo backend
+ * Ex: /vagaA01.json
+ * Retorna uma LISTA de registros históricos
  */
 export interface VagaHistoricoItem {
   data_hora: string;
@@ -12,28 +13,25 @@ export interface VagaHistoricoItem {
 }
 
 /**
- * Busca o histórico da vaga (ex: A01)
+ * Busca o histórico de uma vaga específica (ex: A01)
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
   const response = await fetch(`${API_URL}/vaga${sensor}.json`);
 
   if (!response.ok) {
-    throw new Error("Erro ao buscar vaga");
+    throw new Error(`Erro ao buscar vaga ${sensor}`);
   }
 
   return response.json();
 }
 
 /**
- * Busca todas as vagas (A01 até A40)
+ * Busca o histórico de todas as vagas (A01 até A40)
  */
 export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
-  const vagaIds = [
-    'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
-    'A11','A12','A13','A14','A15','A16','A17','A18','A19','A20',
-    'A21','A22','A23','A24','A25','A26','A27','A28','A29','A30',
-    'A31','A32','A33','A34','A35','A36','A37','A38','A39','A40',
-  ];
+  const vagaIds = Array.from({ length: 40 }, (_, i) =>
+    `A${String(i + 1).padStart(2, "0")}`
+  );
 
   const result: Record<string, VagaHistoricoItem[]> = {};
 
@@ -42,6 +40,7 @@ export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>
       try {
         result[id] = await getVaga(id);
       } catch {
+        // Se alguma vaga não existir ou falhar, retorna histórico vazio
         result[id] = [];
       }
     })
@@ -51,15 +50,21 @@ export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>
 }
 
 /**
- * Converte histórico em estado atual da vaga
+ * Converte o histórico em estado atual da vaga
  */
 export function getEstadoAtual(historico: VagaHistoricoItem[]) {
-  const ultimo = historico.at(-1);
+  if (!historico || historico.length === 0) {
+    return {
+      status: "inactive" as const,
+      lastUpdate: new Date(),
+    };
+  }
+
+  const ultimo = historico[historico.length - 1];
 
   return {
-    status: ultimo?.ocupada === "True" ? "occupied" : "free",
-    lastUpdate: ultimo?.data_hora
-      ? new Date(ultimo.data_hora)
-      : new Date(),
+    status:
+      ultimo.ocupada?.toLowerCase() === "true" ? "occupied" : "free",
+    lastUpdate: new Date(ultimo.data_hora),
   };
 }
