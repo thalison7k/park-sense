@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Car, ParkingCircle, AlertTriangle, TrendingUp, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/dashboard/Header';
@@ -7,38 +6,14 @@ import { ParkingGrid } from '@/components/dashboard/ParkingGrid';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
 import { SensorControls } from '@/components/dashboard/SensorControls';
 import { ConnectionStatus } from '@/components/dashboard/ConnectionStatus';
-import { mockParkingSpots, calculateStats } from '@/data/mockParkingData';
-import { ParkingSpot } from '@/types/parking';
+import { useVagas } from '@/hooks/useVagas';
 
 const Index = () => {
-  const [spots, setSpots] = useState<ParkingSpot[]>(mockParkingSpots);
-  const [stats, setStats] = useState(() => calculateStats(mockParkingSpots));
-
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSpots((prevSpots) => {
-        const newSpots = prevSpots.map((spot) => {
-          if (spot.status === 'inactive') return spot;
-          
-          // 5% chance of status change
-          if (Math.random() < 0.05) {
-            return {
-              ...spot,
-              status: spot.status === 'free' ? 'occupied' : 'free',
-              lastUpdate: new Date(),
-            } as ParkingSpot;
-          }
-          return spot;
-        });
-        
-        setStats(calculateStats(newSpots));
-        return newSpots;
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // useMockData: false para usar API real, true para dados simulados
+  const { spots, stats, isConnected, error, refresh } = useVagas({ 
+    useMockData: false, // Mude para true se quiser testar sem backend
+    refreshInterval: 5000 
+  });
 
   const onlineCount = spots.filter((s) => s.isOnline).length;
 
