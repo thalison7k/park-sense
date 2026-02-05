@@ -15,17 +15,56 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-
-    // Aceita /proxy-vagas?sensor=A01 ou /proxy-vagas/A01
-    const sensorFromQuery = url.searchParams.get('sensor');
     const pathParts = url.pathname.split('/').filter(Boolean);
-    const sensorFromPath = pathParts[pathParts.length - 1];
+    const lastPart = pathParts[pathParts.length - 1];
 
-    const sensor = sensorFromQuery || (sensorFromPath?.match(/^A\d{2}$/) ? sensorFromPath : null);
+    // Se for /proxy-vagas/all - busca todas as vagas em uma única requisição
+    if (lastPart === 'all') {
+      const vagaIds = Array.from({ length: 40 }, (_, i) =>
+        `A${String(i + 1).padStart(2, "0")}`
+      );
+
+      const results: Record<string, unknown[]> = {};
+      
+      // Busca todas em paralelo
+      await Promise.all(
+        vagaIds.map(async (id) => {
+          try {
+            const response = await fetch(`${BACKEND_URL}/vaga${id}.json`, {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': 'true',
+                'User-Agent': 'ParkSense-Proxy/1.0',
+                'Accept': 'application/json',
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              results[id] = Array.isArray(data) ? data : (data.dados || []);
+            } else {
+              results[id] = [];
+            }
+          } catch {
+            results[id] = [];
+          }
+        })
+      );
+
+      return new Response(
+        JSON.stringify(results),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Busca individual: /proxy-vagas/A01 ou /proxy-vagas?sensor=A01
+    const sensorFromQuery = url.searchParams.get('sensor');
+    const sensorFromPath = lastPart?.match(/^A\d{2}$/) ? lastPart : null;
+    const sensor = sensorFromQuery || sensorFromPath;
 
     if (!sensor) {
       return new Response(
-        JSON.stringify({ error: 'Parâmetro sensor é obrigatório' }),
+        JSON.stringify({ error: 'Parâmetro sensor é obrigatório. Use /proxy-vagas/A01 ou /proxy-vagas/all' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -49,8 +88,6 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
-    // Backend retorna { dados: [...] }, extraímos apenas o array
     const historico = Array.isArray(data) ? data : (data.dados || data);
 
     return new Response(

@@ -2,6 +2,7 @@ import { Car, Zap, Radio, Magnet, CircleDot, Wifi, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { ParkingSpot, SensorType } from '@/types/parking';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState, useEffect, useRef } from 'react';
 
 interface ParkingSpotCardProps {
   spot: ParkingSpot;
@@ -24,6 +25,19 @@ const sensorLabels: Record<SensorType, string> = {
 
 export const ParkingSpotCard = ({ spot, onClick }: ParkingSpotCardProps) => {
   const SensorIcon = sensorIcons[spot.sensorType];
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevStatus = useRef(spot.status);
+  
+  // Detecta mudança de status para animação
+  useEffect(() => {
+    if (prevStatus.current !== spot.status) {
+      setIsAnimating(true);
+      prevStatus.current = spot.status;
+      
+      const timer = setTimeout(() => setIsAnimating(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [spot.status]);
   
   const statusStyles = {
     free: 'bg-success/10 border-success/40 glow-success',
@@ -59,16 +73,27 @@ export const ParkingSpotCard = ({ spot, onClick }: ParkingSpotCardProps) => {
           className={cn(
             "parking-spot w-full aspect-square p-3 border-2 rounded-xl flex flex-col items-center justify-center gap-2",
             "transition-all duration-300 hover:scale-105 cursor-pointer group",
-            statusStyles[spot.status]
+            statusStyles[spot.status],
+            isAnimating && "animate-pulse ring-2 ring-offset-2 ring-offset-background",
+            isAnimating && spot.status === 'occupied' && "ring-destructive",
+            isAnimating && spot.status === 'free' && "ring-success",
           )}
         >
-          <div className="relative">
+          <div className={cn(
+            "relative transition-transform duration-300",
+            isAnimating && "scale-125"
+          )}>
             {spot.status === 'occupied' ? (
-              <Car className={cn("w-8 h-8 transition-transform group-hover:scale-110", statusTextStyles[spot.status])} />
+              <Car className={cn(
+                "w-8 h-8 transition-all",
+                statusTextStyles[spot.status],
+                isAnimating && "animate-bounce"
+              )} />
             ) : (
               <div className={cn(
-                "w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center",
-                spot.status === 'free' ? 'border-success/60' : 'border-warning/60'
+                "w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center transition-all",
+                spot.status === 'free' ? 'border-success/60' : 'border-warning/60',
+                isAnimating && spot.status === 'free' && "border-success scale-110"
               )}>
                 {spot.status === 'inactive' && (
                   <WifiOff className="w-4 h-4 text-warning" />
@@ -81,9 +106,10 @@ export const ParkingSpotCard = ({ spot, onClick }: ParkingSpotCardProps) => {
           
           <div className="flex items-center gap-1.5">
             <div className={cn(
-              "w-1.5 h-1.5 rounded-full",
+              "w-1.5 h-1.5 rounded-full transition-all",
               statusBgStyles[spot.status],
-              spot.status !== 'inactive' && 'animate-pulse'
+              spot.status !== 'inactive' && 'animate-pulse',
+              isAnimating && "w-2 h-2"
             )} />
             <span className={cn("text-[10px] font-medium uppercase", statusTextStyles[spot.status])}>
               {spot.status === 'free' ? 'Livre' : spot.status === 'occupied' ? 'Ocupada' : 'Inativo'}
@@ -107,6 +133,7 @@ export const ParkingSpotCard = ({ spot, onClick }: ParkingSpotCardProps) => {
               )}
             </p>
             <p>Atualizado: {timeSinceUpdate()}</p>
+            <p className="text-primary">Clique para detalhes</p>
           </div>
         </div>
       </TooltipContent>

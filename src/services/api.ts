@@ -1,4 +1,4 @@
-// src/lib/api.ts
+// src/services/api.ts
 
 // URL do proxy edge function no Lovable Cloud
 const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-vagas`;
@@ -11,6 +11,22 @@ const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-vagas
 export interface VagaHistoricoItem {
   data_hora: string;
   ocupada: string; // "True" | "False"
+}
+
+/**
+ * Busca TODAS as vagas de uma vez (endpoint otimizado)
+ * Retorna Record<vagaId, historico[]>
+ */
+export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
+  const response = await fetch(`${PROXY_URL}/all`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar todas as vagas: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 /**
@@ -27,30 +43,6 @@ export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
   }
 
   return response.json();
-}
-
-/**
- * Busca o histórico de todas as vagas (A01 até A40)
- */
-export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
-  const vagaIds = Array.from({ length: 40 }, (_, i) =>
-    `A${String(i + 1).padStart(2, "0")}`
-  );
-
-  const result: Record<string, VagaHistoricoItem[]> = {};
-
-  await Promise.all(
-    vagaIds.map(async (id) => {
-      try {
-        result[id] = await getVaga(id);
-      } catch {
-        // Se alguma vaga não existir ou falhar, retorna histórico vazio
-        result[id] = [];
-      }
-    })
-  );
-
-  return result;
 }
 
 /**
@@ -91,4 +83,40 @@ export function mapApiToSpot(id: string, historico: VagaHistoricoItem[]) {
       status: item.ocupada?.toLowerCase() === 'true' ? 'occupied' as const : 'free' as const,
     })),
   };
+}
+
+/**
+ * Calcula dados para o gráfico de ocupação por hora
+ * Baseado nos dados reais do histórico
+ */
+export function calculateHourlyOccupancy(rawData: Record<string, VagaHistoricoItem[]>) {
+  const hours = Array.from({ length: 24 }, (_, i) => ({
+    hour: `${String(i).padStart(2, '0')}:00`,
+    occupied: 0,
+    free: 0,
+    total: 0,
+  }));
+
+  // Agrupa eventos por hora
+  Object.values(rawData).forEach(historico => {
+    historico.forEach(item => {
+      const date = new Date(item.data_hora);
+      const hour = date.getHours();
+      const isOccupied = item.ocupada?.toLowerCase() === 'true';
+      
+      hours[hour].total++;
+      if (isOccupied) {
+        hours[hour].occupied++;
+      } else {
+        hours[hour].free++;
+      }
+    });
+  });
+
+  // Normaliza para percentuais ou contagens médias
+  return hours.map(h => ({
+    hour: h.hour,
+    occupied: h.total > 0 ? Math.round((h.occupied / h.total) * 40) : 0,
+    free: h.total > 0 ? Math.round((h.free / h.total) * 40) : 40,
+  }));
 }
