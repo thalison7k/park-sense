@@ -68,3 +68,23 @@ export function getEstadoAtual(historico: VagaHistoricoItem[]) {
     lastUpdate: new Date(ultimo.data_hora),
   };
 }
+
+/**
+ * Converte dados da API para o formato ParkingSpot do frontend
+ */
+export function mapApiToSpot(id: string, historico: VagaHistoricoItem[]) {
+  const estado = getEstadoAtual(historico);
+  
+  return {
+    id,
+    name: `Vaga ${id}`,
+    status: estado.status as 'free' | 'occupied' | 'inactive',
+    sensorType: 'ultrasonic' as const,
+    lastUpdate: estado.lastUpdate,
+    isOnline: estado.status !== 'inactive',
+    occupancyHistory: historico.map(item => ({
+      timestamp: new Date(item.data_hora),
+      status: item.ocupada?.toLowerCase() === 'true' ? 'occupied' as const : 'free' as const,
+    })),
+  };
+}
