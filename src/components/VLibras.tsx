@@ -10,7 +10,23 @@ declare global {
 
 export const VLibras = () => {
   useEffect(() => {
-    // Adiciona o script do VLibras
+    // Verifica se já existe o script
+    const existingScript = document.querySelector('script[src*="vlibras"]');
+    if (existingScript) return;
+
+    // Adiciona o elemento do widget primeiro
+    const widgetDiv = document.createElement('div');
+    widgetDiv.setAttribute('vw', '');
+    widgetDiv.className = 'enabled';
+    widgetDiv.innerHTML = `
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    `;
+    document.body.appendChild(widgetDiv);
+
+    // Depois carrega o script
     const script = document.createElement('script');
     script.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
     script.async = true;
@@ -23,25 +39,13 @@ export const VLibras = () => {
     
     document.body.appendChild(script);
 
-    // Adiciona o elemento do widget
-    const widget = document.createElement('div');
-    widget.setAttribute('vw', '');
-    widget.className = 'enabled';
-    widget.innerHTML = `
-      <div vw-access-button class="active"></div>
-      <div vw-plugin-wrapper>
-        <div class="vw-plugin-top-wrapper"></div>
-      </div>
-    `;
-    document.body.appendChild(widget);
-
     return () => {
       // Cleanup
-      const existingScript = document.querySelector('script[src*="vlibras"]');
-      if (existingScript) existingScript.remove();
+      const scriptEl = document.querySelector('script[src*="vlibras"]');
+      if (scriptEl) scriptEl.remove();
       
-      const existingWidget = document.querySelector('[vw]');
-      if (existingWidget) existingWidget.remove();
+      const widgetEl = document.querySelector('[vw]');
+      if (widgetEl) widgetEl.remove();
     };
   }, []);
 
