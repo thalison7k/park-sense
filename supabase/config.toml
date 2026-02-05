@@ -1,1 +1,4 @@
 project_id = "zsckxvzikemrflwiiokz"
+
+[functions.proxy-vagas]
+verify_jwt = false
