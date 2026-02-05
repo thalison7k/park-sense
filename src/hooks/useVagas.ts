@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ParkingSpot } from '@/types/parking';
-import { getAllVagas, mapApiToSpot } from '@/services/api';
+import { getAllVagas, mapApiToSpot, VagaHistoricoItem } from '@/services/api';
 import { mockParkingSpots, calculateStats } from '@/data/mockParkingData';
 
 interface UseVagasOptions {
@@ -12,6 +12,7 @@ export function useVagas(options: UseVagasOptions = {}) {
   const { useMockData = false, refreshInterval = 5000 } = options;
   
   const [spots, setSpots] = useState<ParkingSpot[]>(mockParkingSpots);
+  const [rawData, setRawData] = useState<Record<string, VagaHistoricoItem[]>>({});
   const [stats, setStats] = useState(() => calculateStats(mockParkingSpots));
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,7 @@ export function useVagas(options: UseVagasOptions = {}) {
     if (useMockData) {
       setSpots(mockParkingSpots);
       setStats(calculateStats(mockParkingSpots));
+      setRawData({});
       setIsLoading(false);
       setIsConnected(true);
       return;
@@ -28,6 +30,9 @@ export function useVagas(options: UseVagasOptions = {}) {
 
     try {
       const vagasRecord = await getAllVagas();
+      // Armazena dados brutos para métricas
+      setRawData(vagasRecord);
+      
       // Converte o Record para array de ParkingSpot
       const mappedSpots = Object.entries(vagasRecord).map(([id, historico]) => 
         mapApiToSpot(id, historico)
@@ -63,6 +68,7 @@ export function useVagas(options: UseVagasOptions = {}) {
 
   return {
     spots,
+    rawData,
     stats,
     isLoading,
     error,

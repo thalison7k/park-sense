@@ -258,3 +258,83 @@
     transform: translateY(0);
   }
 }
+
+/* Modo Alto Contraste */
+.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --primary: 60 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  --border: 0 0% 40%;
+  --success: 120 100% 40%;
+  --destructive: 0 100% 50%;
+  --warning: 60 100% 50%;
+}
+
+.high-contrast * {
+  border-color: hsl(0, 0%, 60%) !important;
+}
+
+.high-contrast .glass-card {
+  background: hsl(0, 0%, 5%) !important;
+  border: 2px solid hsl(0, 0%, 60%) !important;
+}
+
+/* Modo Texto Grande */
+.large-text {
+  font-size: 120%;
+}
+
+.large-text h1 {
+  font-size: 2.5rem !important;
+}
+
+.large-text h2 {
+  font-size: 2rem !important;
+}
+
+.large-text h3 {
+  font-size: 1.5rem !important;
+}
+
+.large-text p,
+.large-text span,
+.large-text label {
+  font-size: 1.1rem !important;
+}
+
+/* Modo Reduzir Movimento */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Focus visible melhorado para navegação por teclado */
+:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Skip link para navegação por teclado */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 8px 16px;
+  z-index: 100;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
+}
