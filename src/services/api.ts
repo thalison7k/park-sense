@@ -16,7 +16,11 @@ export interface VagaHistoricoItem {
  * Busca o histórico de uma vaga específica (ex: A01)
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  const response = await fetch(`${API_URL}/vaga${sensor}.json`);
+  const response = await fetch(`${API_URL}/vaga${sensor}.json`, {
+    headers: {
+      'ngrok-skip-browser-warning': 'true',
+    },
+  });
 
   if (!response.ok) {
     throw new Error(`Erro ao buscar vaga ${sensor}`);
