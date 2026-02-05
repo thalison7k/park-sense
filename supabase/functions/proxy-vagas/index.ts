@@ -15,7 +15,13 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const sensor = url.searchParams.get('sensor');
+
+    // Aceita /proxy-vagas?sensor=A01 ou /proxy-vagas/A01
+    const sensorFromQuery = url.searchParams.get('sensor');
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const sensorFromPath = pathParts[pathParts.length - 1];
+
+    const sensor = sensorFromQuery || (sensorFromPath?.match(/^A\d{2}$/) ? sensorFromPath : null);
 
     if (!sensor) {
       return new Response(
