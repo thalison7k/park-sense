@@ -18,11 +18,8 @@ export interface VagaHistoricoItem {
  * Usa proxy edge function para contornar CORS
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  const response = await fetch(`${PROXY_URL}?sensor=${sensor}`, {
+  const response = await fetch(`${PROXY_URL}/${sensor}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
 
   if (!response.ok) {
