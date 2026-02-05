@@ -12,9 +12,8 @@ import { useMetrics } from '@/hooks/useMetrics';
 
 const Index = () => {
   // useMockData: false para usar API real, true para dados simulados
-  const { spots, rawData, stats, isConnected, error, refresh, isLoading } = useVagas({ 
+  const { spots, rawData, stats, isConnected, isMqttConnected, error, refresh, isLoading } = useVagas({ 
     useMockData: false, // Mude para true se quiser testar sem backend
-    refreshInterval: 5000 
   });
 
   // Hook para calcular métricas a partir dos dados brutos
@@ -84,7 +83,7 @@ const Index = () => {
           </div>
           <div className="space-y-6">
             <SensorControls />
-            <ConnectionStatus />
+            <ConnectionStatus isApiConnected={isConnected} isMqttConnected={isMqttConnected} />
           </div>
         </section>
 
