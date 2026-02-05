@@ -17,8 +17,11 @@ export interface VagaHistoricoItem {
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
   const response = await fetch(`${API_URL}/vaga${sensor}.json`, {
+    method: 'GET',
     headers: {
       'ngrok-skip-browser-warning': 'true',
+      'User-Agent': 'ParkSense-Dashboard/1.0',
+      'Accept': 'application/json',
     },
   });
 
