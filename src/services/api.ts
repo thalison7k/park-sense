@@ -1,6 +1,7 @@
 // src/lib/api.ts
 
-export const API_URL = "https://25382ca97f25.ngrok-free.app";
+// URL do proxy edge function no Lovable Cloud
+const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-vagas`;
 
 /**
  * Estrutura REAL retornada pelo backend
@@ -14,14 +15,13 @@ export interface VagaHistoricoItem {
 
 /**
  * Busca o histórico de uma vaga específica (ex: A01)
+ * Usa proxy edge function para contornar CORS
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  const response = await fetch(`${API_URL}/vaga${sensor}.json`, {
+  const response = await fetch(`${PROXY_URL}?sensor=${sensor}`, {
     method: 'GET',
     headers: {
-      'ngrok-skip-browser-warning': 'true',
-      'User-Agent': 'ParkSense-Dashboard/1.0',
-      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
   });
 
