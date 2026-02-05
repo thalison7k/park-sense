@@ -27,8 +27,11 @@ export function useVagas(options: UseVagasOptions = {}) {
     }
 
     try {
-      const vagas = await getAllVagas();
-      const mappedSpots = vagas.map(mapApiToSpot);
+      const vagasRecord = await getAllVagas();
+      // Converte o Record para array de ParkingSpot
+      const mappedSpots = Object.entries(vagasRecord).map(([id, historico]) => 
+        mapApiToSpot(id, historico)
+      );
       
       setSpots(mappedSpots);
       setStats(calculateStats(mappedSpots));
