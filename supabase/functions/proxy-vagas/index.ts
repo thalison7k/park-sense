@@ -49,9 +49,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    
+    // Backend retorna { dados: [...] }, extraímos apenas o array
+    const historico = Array.isArray(data) ? data : (data.dados || data);
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(historico),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
