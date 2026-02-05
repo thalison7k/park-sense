@@ -98,9 +98,9 @@ const Index = () => {
           />
         </section>
 
-        {/* Chart */}
+        {/* Chart - agora com dados reais */}
         <section aria-label="Histórico de ocupação">
-          <OccupancyChart />
+          <OccupancyChart rawData={rawData} isLoading={isLoading} />
         </section>
 
         {/* Footer */}
