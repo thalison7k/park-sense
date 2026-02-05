@@ -1,6 +1,6 @@
 // src/lib/api.ts
 
-export const API_URL = "http://127.0.0.1:8000";
+export const API_URL = "https://25382ca97f25.ngrok-free.app";
 
 /**
  * Estrutura REAL retornada pelo backend
