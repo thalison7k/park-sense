@@ -9,7 +9,7 @@ interface UseVagasOptions {
 }
 
 export function useVagas(options: UseVagasOptions = {}) {
-  const { useMockData = false, refreshInterval = 5000 } = options;
+  const { useMockData = false, refreshInterval = 2000 } = options;
   
   const [spots, setSpots] = useState<ParkingSpot[]>(mockParkingSpots);
   const [rawData, setRawData] = useState<Record<string, VagaHistoricoItem[]>>({});
