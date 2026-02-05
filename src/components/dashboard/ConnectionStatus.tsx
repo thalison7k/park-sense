@@ -1,11 +1,31 @@
-import { Wifi, Server, Database, Clock } from 'lucide-react';
+import { Wifi, Server, Database, Clock, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const ConnectionStatus = () => {
+interface ConnectionStatusProps {
+  isApiConnected?: boolean;
+  isMqttConnected?: boolean;
+}
+
+export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = false }: ConnectionStatusProps) => {
   const connections = [
-    { name: 'MQTT Broker', icon: Server, status: 'online', latency: '12ms' },
-    { name: 'Database', icon: Database, status: 'online', latency: '8ms' },
-    { name: 'Gateway', icon: Wifi, status: 'online', latency: '23ms' },
+    { 
+      name: 'MQTT Broker', 
+      icon: Radio, 
+      status: isMqttConnected ? 'online' : 'offline', 
+      description: isMqttConnected ? 'Tempo real ativo' : 'Aguardando conexão'
+    },
+    { 
+      name: 'API Backend', 
+      icon: Server, 
+      status: isApiConnected ? 'online' : 'offline', 
+      description: isApiConnected ? 'Dados carregados' : 'Sem conexão'
+    },
+    { 
+      name: 'Gateway IoT', 
+      icon: Wifi, 
+      status: isApiConnected ? 'online' : 'offline', 
+      description: 'Django + ngrok'
+    },
   ];
 
   return (
@@ -14,7 +34,7 @@ export const ConnectionStatus = () => {
         <h2 className="text-lg font-semibold">Status da Conexão</h2>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="w-3 h-3" />
-          <span className="font-mono">Atualizado há 2s</span>
+          <span className="font-mono">Tempo real</span>
         </div>
       </div>
 
@@ -41,17 +61,17 @@ export const ConnectionStatus = () => {
                 <div>
                   <p className="text-sm font-medium">{conn.name}</p>
                   <p className={cn(
-                    "text-xs font-mono",
+                    "text-xs",
                     isOnline ? "text-success" : "text-destructive"
                   )}>
-                    {conn.status}
+                    {conn.status} — {conn.description}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-mono text-primary">{conn.latency}</p>
-                <p className="text-xs text-muted-foreground">latência</p>
-              </div>
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                isOnline ? "bg-success animate-pulse" : "bg-destructive"
+              )} />
             </div>
           );
         })}
