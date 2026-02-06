@@ -11,10 +11,8 @@ import { useVagas } from '@/hooks/useVagas';
 import { useMetrics } from '@/hooks/useMetrics';
 
 const Index = () => {
-  // useMockData: false para usar API real, true para dados simulados
-  const { spots, rawData, stats, isConnected, isMqttConnected, error, refresh, isLoading } = useVagas({ 
-    useMockData: false, // Mude para true se quiser testar sem backend
-  });
+  // Dados sempre da API real e MQTT
+  const { spots, rawData, stats, isConnected, isMqttConnected, error, refresh, isLoading } = useVagas();
 
   // Hook para calcular métricas a partir dos dados brutos
   const { globalMetrics, isCalculating } = useMetrics({
