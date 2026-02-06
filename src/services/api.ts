@@ -84,3 +84,61 @@ export function mapApiToSpot(id: string, historico: VagaHistoricoItem[]) {
     })),
   };
 }
+
+// ===============================
+// Busca todas as vagas via proxy
+// ===============================
+
+const PROXY_URL = `https://zsckxvzikemrflwiiokz.supabase.co/functions/v1/proxy-vagas`;
+
+export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
+  const response = await fetch(`${PROXY_URL}/all`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar todas as vagas: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// ===============================
+// Cálculo de ocupação por hora
+// ===============================
+
+export function calculateHourlyOccupancy(rawData: Record<string, VagaHistoricoItem[]>) {
+  const hourlyData: { hour: string; occupied: number; free: number }[] = [];
+  const totalSpots = Object.keys(rawData).length || 40;
+
+  for (let h = 0; h < 24; h++) {
+    const hourStr = `${String(h).padStart(2, '0')}:00`;
+    let occupiedCount = 0;
+
+    Object.values(rawData).forEach((historico) => {
+      // Encontra o último registro antes ou durante esta hora
+      const relevantRecords = historico.filter((item) => {
+        const itemHour = new Date(item.data_hora).getHours();
+        return itemHour <= h;
+      });
+
+      if (relevantRecords.length > 0) {
+        const lastRecord = relevantRecords[relevantRecords.length - 1];
+        if (lastRecord.ocupada?.toLowerCase() === "true") {
+          occupiedCount++;
+        }
+      }
+    });
+
+    hourlyData.push({
+      hour: hourStr,
+      occupied: occupiedCount,
+      free: totalSpots - occupiedCount,
+    });
+  }
+
+  return hourlyData;
+}
