@@ -34,7 +34,7 @@ export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>
  * Usa proxy edge function para contornar CORS
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  const response = await fetch(`${PROXY_URL}/${sensor}`, {
+  const response = await fetch(`${BASE_URL}/vaga${sensor}.json`, {
     method: "GET",
   });
 
