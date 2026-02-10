@@ -169,29 +169,48 @@ export function useVagas() {
     
     // Atualiza o estado das vagas
     setSpots(prevSpots => {
-      // Mapeia as vagas, atualizando apenas a que recebeu update
-      const updatedSpots = prevSpots.map(spot => {
-        // Verifica se é a vaga que recebeu a mensagem
-        if (spot.id === message.vagaId) {
-          // Define novo status baseado na mensagem
-          const newStatus = message.ocupada ? 'occupied' : 'free';
-          
-          // Retorna vaga atualizada
-          return {
-            ...spot,
+      // Define novo status baseado na mensagem
+      const newStatus = message.ocupada ? 'occupied' : 'free';
+
+      // Verifica se a vaga já existe no array
+      const exists = prevSpots.some(spot => spot.id === message.vagaId);
+
+      let updatedSpots: ParkingSpot[];
+
+      if (exists) {
+        // Atualiza a vaga existente
+        updatedSpots = prevSpots.map(spot => {
+          if (spot.id === message.vagaId) {
+            return {
+              ...spot,
+              status: newStatus as 'free' | 'occupied' | 'inactive',
+              lastUpdate: message.timestamp,
+              isOnline: true,
+              occupancyHistory: [
+                ...spot.occupancyHistory,
+                { timestamp: message.timestamp, status: newStatus as 'free' | 'occupied' }
+              ]
+            };
+          }
+          return spot;
+        });
+      } else {
+        // Vaga nova vinda do MQTT que não existia na API — cria ela
+        updatedSpots = [
+          ...prevSpots,
+          {
+            id: message.vagaId,
+            name: `Vaga ${message.vagaId}`,
             status: newStatus as 'free' | 'occupied' | 'inactive',
+            sensorType: 'ultrasonic' as const,
             lastUpdate: message.timestamp,
             isOnline: true,
-            // Adiciona novo registro ao histórico
             occupancyHistory: [
-              ...spot.occupancyHistory,
               { timestamp: message.timestamp, status: newStatus as 'free' | 'occupied' }
             ]
-          };
-        }
-        // Retorna vaga sem alteração
-        return spot;
-      });
+          }
+        ];
+      }
       
       // Recalcula estatísticas com os novos dados
       setStats(calculateStats(updatedSpots));
