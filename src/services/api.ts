@@ -26,12 +26,21 @@ export interface VagaHistoricoItem {
  * Endpoint REAL: /vagaA01.json
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  const response = await fetch(`${BASE_URL}/vaga${sensor}.json`, { method: "GET" });
+  // Faz requisição GET com header para bypass do ngrok
+  const response = await fetch(`${BASE_URL}/vaga${sensor}.json`, {
+    method: "GET",
+    headers: {
+      // Header obrigatório para evitar página de aviso do ngrok
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
 
+  // Se resposta não for OK, lança erro
   if (!response.ok) {
     throw new Error(`Erro ao buscar vaga ${sensor}: ${response.status}`);
   }
 
+  // Retorna dados parseados como JSON
   return response.json();
 }
 
