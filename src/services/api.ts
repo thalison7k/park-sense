@@ -2,7 +2,7 @@
 // URL REAL DO BACKEND
 // ===============================
 
-const BASE_URL = "https://25382ca97f25.ngrok-free.app";
+const BASE_URL = "https://a5ad-2804-718-8504-7a00-1900-9af0-d8c8-1871.ngrok-free.app/";
 
 // ===============================
 // Tipos
