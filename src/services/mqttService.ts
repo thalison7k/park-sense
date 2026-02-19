@@ -16,7 +16,7 @@ const BROKER_URL = "wss://test.mosquitto.org:8081/mqtt";
 // Padrão de tópico para subscrição
 // # é wildcard que captura qualquer sufixo (A01, B02, etc.)
 // Formato das mensagens: pi5/estacionamento/vaga/A01, pi5/estacionamento/vaga/B02, etc.
-const TOPIC_PATTERN = "pi5/estacionamento/vaga/a01";
+const TOPIC_PATTERN = "pi5/estacionamento/vaga/#";
 
 // ===============================
 // Tipos

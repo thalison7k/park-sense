@@ -49,14 +49,30 @@ export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
  * (como o backend não tem /all, montamos no frontend)
  */
 export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
-  const sensores = ["A01"]; // ← adicione mais se existirem
+  // Lista de todos os sensores disponíveis no backend
+  // Padrão: Setor (A-D) + número (01-10)
+  const sensores = [
+    "A01", "A02", "A03", "A04", "A05",
+    "B01", "B02", "B03", "B04", "B05",
+    "C01", "C02", "C03", "C04", "C05",
+    "D01", "D02", "D03", "D04", "D05",
+  ];
   const result: Record<string, VagaHistoricoItem[]> = {};
 
-  await Promise.all(
+  // Usa allSettled para não travar se uma vaga não existir no backend
+  const results = await Promise.allSettled(
     sensores.map(async (sensor) => {
-      result[sensor] = await getVaga(sensor);
+      const data = await getVaga(sensor);
+      result[sensor] = data;
     }),
   );
+
+  // Loga quais vagas falharam (ex: sensor ainda não cadastrado)
+  results.forEach((res, i) => {
+    if (res.status === "rejected") {
+      console.warn(`[API] Vaga ${sensores[i]} não encontrada:`, res.reason);
+    }
+  });
 
   return result;
 }
