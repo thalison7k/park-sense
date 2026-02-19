@@ -133,6 +133,9 @@ export function calculateHourlyOccupancy(rawData: Record<string, VagaHistoricoIt
   }));
 
   Object.values(rawData).forEach((historico) => {
+    // Guard: ignora vagas sem dados (retornaram 404)
+    if (!Array.isArray(historico)) return;
+
     historico.forEach((item) => {
       const date = new Date(item.data_hora);
       const hour = date.getHours();

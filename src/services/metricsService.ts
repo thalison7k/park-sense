@@ -1,7 +1,6 @@
 // src/services/metricsService.ts
 // Serviço para cálculo de métricas de ocupação a partir do histórico
 
-import { ParkingSpot, OccupancyRecord } from '@/types/parking';
 import { VagaHistoricoItem } from './api';
 
 /**
@@ -30,14 +29,11 @@ export interface GlobalMetrics {
 }
 
 /**
- * Calcula a duração de ocupação entre dois eventos consecutivos
+ * Calcula a duração de ocupação entre dois momentos (em minutos)
  */
-function calculateOccupancyDuration(
-  startTime: Date,
-  endTime: Date
-): number {
+function calculateOccupancyDuration(startTime: Date, endTime: Date): number {
   const diffMs = endTime.getTime() - startTime.getTime();
-  return Math.max(0, Math.floor(diffMs / (1000 * 60))); // minutos
+  return Math.max(0, Math.floor(diffMs / (1000 * 60)));
 }
 
 /**
@@ -47,8 +43,8 @@ export function parseOccupancyPeriods(
   historico: VagaHistoricoItem[]
 ): { start: Date; end: Date; durationMinutes: number }[] {
   const periods: { start: Date; end: Date; durationMinutes: number }[] = [];
-  
-  if (!historico || historico.length === 0) return periods;
+
+  if (!Array.isArray(historico) || historico.length === 0) return periods;
 
   let occupancyStart: Date | null = null;
 
@@ -58,16 +54,10 @@ export function parseOccupancyPeriods(
     const timestamp = new Date(item.data_hora);
 
     if (isOccupied && !occupancyStart) {
-      // Início de ocupação
       occupancyStart = timestamp;
     } else if (!isOccupied && occupancyStart) {
-      // Fim de ocupação
       const duration = calculateOccupancyDuration(occupancyStart, timestamp);
-      periods.push({
-        start: occupancyStart,
-        end: timestamp,
-        durationMinutes: duration,
-      });
+      periods.push({ start: occupancyStart, end: timestamp, durationMinutes: duration });
       occupancyStart = null;
     }
   }
@@ -76,11 +66,7 @@ export function parseOccupancyPeriods(
   if (occupancyStart) {
     const now = new Date();
     const duration = calculateOccupancyDuration(occupancyStart, now);
-    periods.push({
-      start: occupancyStart,
-      end: now,
-      durationMinutes: duration,
-    });
+    periods.push({ start: occupancyStart, end: now, durationMinutes: duration });
   }
 
   return periods;
@@ -94,24 +80,24 @@ export function calculateSpotMetrics(
   spotName: string,
   historico: VagaHistoricoItem[]
 ): SpotMetrics {
-  const periods = parseOccupancyPeriods(historico);
-  
+  // Guard: garante que historico é array válido
+  const safeHistorico = Array.isArray(historico) ? historico : [];
+  const periods = parseOccupancyPeriods(safeHistorico);
+
   const totalTime = periods.reduce((acc, p) => acc + p.durationMinutes, 0);
   const avgTime = periods.length > 0 ? totalTime / periods.length : 0;
-  
-  // Calcula taxa de utilização nas últimas 24h
-  const now = new Date();
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  
-  const recentPeriods = periods.filter(p => p.start >= yesterday);
-  const recentTotalMinutes = recentPeriods.reduce((acc, p) => {
-    const effectiveStart = p.start < yesterday ? yesterday : p.start;
-    const effectiveEnd = p.end > now ? now : p.end;
-    return acc + calculateOccupancyDuration(effectiveStart, effectiveEnd);
-  }, 0);
-  
-  const utilizationRate = (recentTotalMinutes / (24 * 60)) * 100;
-  const lastOccupancy = periods.length > 0 ? periods[periods.length - 1].end : null;
+
+  // Taxa de utilização: tempo ocupada nas últimas 24h / 1440 min
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recentTime = periods
+    .filter(p => p.end > yesterday)
+    .reduce((acc, p) => {
+      const effectiveStart = p.start < yesterday ? yesterday : p.start;
+      return acc + calculateOccupancyDuration(effectiveStart, p.end);
+    }, 0);
+
+  const utilizationRate = Math.min(100, Math.round((recentTime / 1440) * 100));
+  const lastOccupancy = periods.length > 0 ? periods[periods.length - 1].start : null;
 
   return {
     spotId,
@@ -119,7 +105,7 @@ export function calculateSpotMetrics(
     averageOccupancyMinutes: Math.round(avgTime),
     totalOccupancyTime: totalTime,
     occupancyCount: periods.length,
-    utilizationRate: Math.min(100, Math.round(utilizationRate * 10) / 10),
+    utilizationRate,
     lastOccupancy,
   };
 }
@@ -131,26 +117,18 @@ export function calculateGlobalMetrics(
   spotsData: Record<string, VagaHistoricoItem[]>
 ): GlobalMetrics {
   const spotMetrics: SpotMetrics[] = [];
-  
-  // Calcula métricas para cada vaga
+
+  // Filtra apenas vagas com dados reais (Array não vazio)
   Object.entries(spotsData).forEach(([id, historico]) => {
+    if (!Array.isArray(historico) || historico.length === 0) return;
     const metrics = calculateSpotMetrics(id, `Vaga ${id}`, historico);
     spotMetrics.push(metrics);
   });
 
-  // Ordena por utilização
-  const sortedByUsage = [...spotMetrics].sort(
-    (a, b) => b.utilizationRate - a.utilizationRate
-  );
-
-  // Vagas mais e menos utilizadas
+  const sortedByUsage = [...spotMetrics].sort((a, b) => b.utilizationRate - a.utilizationRate);
   const mostUsedSpots = sortedByUsage.slice(0, 5);
-  const leastUsedSpots = sortedByUsage
-    .filter(s => s.occupancyCount > 0)
-    .slice(-5)
-    .reverse();
+  const leastUsedSpots = sortedByUsage.filter(s => s.occupancyCount > 0).slice(-5).reverse();
 
-  // Média geral
   const avgOccupancy = spotMetrics.length > 0
     ? spotMetrics.reduce((acc, s) => acc + s.averageOccupancyMinutes, 0) / spotMetrics.length
     : 0;
@@ -160,8 +138,6 @@ export function calculateGlobalMetrics(
     : 0;
 
   const totalEvents = spotMetrics.reduce((acc, s) => acc + s.occupancyCount, 0);
-
-  // Calcula picos por hora (análise simplificada)
   const hourlyOccupancy = calculateHourlyOccupancy(spotsData);
 
   return {
@@ -175,37 +151,34 @@ export function calculateGlobalMetrics(
 }
 
 /**
- * Calcula ocupação por hora do dia
+ * Calcula ocupação por hora do dia (com guard para historico inválido)
  */
 function calculateHourlyOccupancy(
   spotsData: Record<string, VagaHistoricoItem[]>
 ): { hour: number; occupancyRate: number }[] {
   const hourlyData: { [hour: number]: { occupied: number; total: number } } = {};
-  
-  // Inicializa todas as horas
+
   for (let h = 0; h < 24; h++) {
     hourlyData[h] = { occupied: 0, total: 0 };
   }
 
-  // Conta eventos por hora
   Object.values(spotsData).forEach(historico => {
+    // Guard: ignora entradas undefined/null/não-array (vagas que deram 404)
+    if (!Array.isArray(historico)) return;
+
     historico.forEach(item => {
       const date = new Date(item.data_hora);
       const hour = date.getHours();
       const isOccupied = item.ocupada?.toLowerCase() === 'true';
-      
+
       hourlyData[hour].total++;
-      if (isOccupied) {
-        hourlyData[hour].occupied++;
-      }
+      if (isOccupied) hourlyData[hour].occupied++;
     });
   });
 
   return Object.entries(hourlyData).map(([hour, data]) => ({
     hour: parseInt(hour),
-    occupancyRate: data.total > 0 
-      ? Math.round((data.occupied / data.total) * 100) 
-      : 0,
+    occupancyRate: data.total > 0 ? Math.round((data.occupied / data.total) * 100) : 0,
   }));
 }
 
@@ -213,9 +186,7 @@ function calculateHourlyOccupancy(
  * Formata tempo em minutos para exibição legível
  */
 export function formatDuration(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes}min`;
-  }
+  if (minutes < 60) return `${minutes}min`;
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
