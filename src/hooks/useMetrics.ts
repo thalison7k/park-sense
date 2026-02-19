@@ -1,7 +1,7 @@
 // src/hooks/useMetrics.ts
 // Hook para gerenciamento de métricas de ocupação
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { 
   calculateGlobalMetrics, 
   GlobalMetrics, 
@@ -23,29 +23,23 @@ interface UseMetricsReturn {
 }
 
 export function useMetrics({ rawData, enabled = true }: UseMetricsOptions): UseMetricsReturn {
-  const [isCalculating, setIsCalculating] = useState(false);
+  // isCalculating derivado diretamente — não usa setState dentro de useMemo
+  const hasData = enabled && Object.keys(rawData).length > 0;
 
   const globalMetrics = useMemo(() => {
-    if (!enabled || Object.keys(rawData).length === 0) {
-      return null;
-    }
-    
-    setIsCalculating(true);
-    const metrics = calculateGlobalMetrics(rawData);
-    setIsCalculating(false);
-    
-    return metrics;
-  }, [rawData, enabled]);
+    if (!hasData) return null;
+    return calculateGlobalMetrics(rawData);
+  }, [rawData, hasData]);
+
+  // isCalculating é sempre false pois o cálculo é síncrono
+  const isCalculating = false;
 
   const spotMetrics = useMemo(() => {
-    if (!enabled || Object.keys(rawData).length === 0) {
-      return [];
-    }
-
+    if (!hasData) return [];
     return Object.entries(rawData).map(([id, historico]) =>
       calculateSpotMetrics(id, `Vaga ${id}`, historico)
     );
-  }, [rawData, enabled]);
+  }, [rawData, hasData]);
 
   const peakHoursFormatted = useMemo(() => {
     if (!globalMetrics) return [];
