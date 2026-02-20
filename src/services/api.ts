@@ -27,13 +27,7 @@ export interface VagaHistoricoItem {
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
   // Faz requisição GET com header para bypass do ngrok
-  const response = await fetch(`${BASE_URL}/vaga${sensor}.json`, {
-    method: "GET",
-    headers: {
-      // Header obrigatório para evitar página de aviso do ngrok
-      "ngrok-skip-browser-warning": "true",
-    },
-  });
+  const response = await fetch(`${BASE_URL}/vaga${sensor}.json`);
 
   // Se resposta não for OK, lança erro
   if (!response.ok) {
@@ -51,12 +45,9 @@ export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
 export async function getAllVagas(): Promise<Record<string, VagaHistoricoItem[]>> {
   // Lista de todos os sensores disponíveis no backend
   // Padrão: Setor (A-D) + número (01-10)
-  const sensores = [
-    "A01", "A02", "A03", "A04", "A05",
-    "B01", "B02", "B03", "B04", "B05",
-    "C01", "C02", "C03", "C04", "C05",
-    "D01", "D02", "D03", "D04", "D05",
-  ];
+  const sensores = Array.from({ length: 40 }, (_, i) =>
+    `A${String(i + 1).padStart(2, "0")}`
+  );
   const result: Record<string, VagaHistoricoItem[]> = {};
 
   // Usa allSettled para não travar se uma vaga não existir no backend
