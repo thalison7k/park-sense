@@ -11,7 +11,7 @@ import mqtt from "mqtt";
 
 // URL do broker MQTT público (test.mosquitto.org via WebSocket seguro)
 // Porta 8081 é para conexões WebSocket seguras (wss://)
-const BROKER_URL = "wss://test.mosquitto.org:8081/mqtt";
+const BROKER_URL = "wss://test.mosquitto.org:8081";
 
 // Padrão de tópico para subscrição
 // # é wildcard que captura qualquer sufixo (A01, B02, etc.)
