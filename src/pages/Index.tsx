@@ -6,19 +6,11 @@ import { ParkingGrid } from '@/components/dashboard/ParkingGrid';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
 import { SensorControls } from '@/components/dashboard/SensorControls';
 import { ConnectionStatus } from '@/components/dashboard/ConnectionStatus';
-import { MetricsPanel } from '@/components/dashboard/MetricsPanel';
 import { useVagas } from '@/hooks/useVagas';
-import { useMetrics } from '@/hooks/useMetrics';
 
 const Index = () => {
-  // Dados sempre da API real e MQTT
-  const { spots, rawData, stats, isConnected, isMqttConnected, error, refresh, isLoading } = useVagas();
-
-  // Hook para calcular métricas a partir dos dados brutos
-  const { globalMetrics, isCalculating } = useMetrics({
-    rawData,
-    enabled: Object.keys(rawData).length > 0,
-  });
+  // Dados sempre da API real
+  const { spots, rawData, stats, isConnected, error, refresh, isLoading } = useVagas();
 
   const onlineCount = spots.filter((s) => s.isOnline).length;
 
@@ -81,20 +73,10 @@ const Index = () => {
           </div>
           <div className="space-y-6">
             <SensorControls />
-            <ConnectionStatus isApiConnected={isConnected} isMqttConnected={isMqttConnected} />
+            <ConnectionStatus isApiConnected={isConnected} isMqttConnected={false} />
           </div>
         </section>
 
-        {/* Metrics Panel - Nova seção */}
-        <section 
-          className="mb-6"
-          aria-label="Métricas de tempo de ocupação"
-        >
-          <MetricsPanel 
-            metrics={globalMetrics} 
-            isLoading={isLoading || isCalculating} 
-          />
-        </section>
 
         {/* Chart - agora com dados reais */}
         <section aria-label="Histórico de ocupação">
