@@ -34,8 +34,8 @@ export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
     throw new Error(`Erro ao buscar vaga ${sensor}: ${response.status}`);
   }
 
-  // Retorna dados parseados como JSON
-  return response.json();
+  const json = await response.json();
+  return json.dados || json;
 }
 
 /**
