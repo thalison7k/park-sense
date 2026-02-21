@@ -1,19 +1,17 @@
-import { Wifi, Server, Database, Clock, Radio } from 'lucide-react';
+import { Server, Wifi, Clock, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ConnectionStatusProps {
   isApiConnected?: boolean;
-  isMqttConnected?: boolean;
+  sensorStats?: { total: number; online: number };
 }
 
-export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = false }: ConnectionStatusProps) => {
+export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: ConnectionStatusProps) => {
+  const sensorOnline = sensorStats ? sensorStats.online : 0;
+  const sensorTotal = sensorStats ? sensorStats.total : 0;
+  const allSensorsOnline = sensorTotal > 0 && sensorOnline === sensorTotal;
+
   const connections = [
-    { 
-      name: 'MQTT Broker', 
-      icon: Radio, 
-      status: isMqttConnected ? 'online' : 'offline', 
-      description: isMqttConnected ? 'Tempo real ativo' : 'Aguardando conexão'
-    },
     { 
       name: 'API Backend', 
       icon: Server, 
@@ -24,7 +22,15 @@ export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = fal
       name: 'Gateway IoT', 
       icon: Wifi, 
       status: isApiConnected ? 'online' : 'offline', 
-      description: 'Django + ngrok'
+      description: 'Django + PythonAnywhere'
+    },
+    { 
+      name: 'Sensores Ultrassônicos', 
+      icon: Radio, 
+      status: allSensorsOnline ? 'online' : sensorOnline > 0 ? 'partial' : 'offline', 
+      description: sensorTotal > 0 
+        ? `${sensorOnline}/${sensorTotal} ativos` 
+        : 'Aguardando dados'
     },
   ];
 
@@ -34,7 +40,7 @@ export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = fal
         <h2 className="text-lg font-semibold">Status da Conexão</h2>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="w-3 h-3" />
-          <span className="font-mono">Tempo real</span>
+          <span className="font-mono">Polling REST</span>
         </div>
       </div>
 
@@ -42,6 +48,7 @@ export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = fal
         {connections.map((conn) => {
           const Icon = conn.icon;
           const isOnline = conn.status === 'online';
+          const isPartial = conn.status === 'partial';
           
           return (
             <div
@@ -51,26 +58,26 @@ export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = fal
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center",
-                  isOnline ? "bg-success/20" : "bg-destructive/20"
+                  isOnline ? "bg-success/20" : isPartial ? "bg-warning/20" : "bg-destructive/20"
                 )}>
                   <Icon className={cn(
                     "w-4 h-4",
-                    isOnline ? "text-success" : "text-destructive"
+                    isOnline ? "text-success" : isPartial ? "text-warning" : "text-destructive"
                   )} />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{conn.name}</p>
                   <p className={cn(
                     "text-xs",
-                    isOnline ? "text-success" : "text-destructive"
+                    isOnline ? "text-success" : isPartial ? "text-warning" : "text-destructive"
                   )}>
-                    {conn.status} — {conn.description}
+                    {isPartial ? 'parcial' : conn.status} — {conn.description}
                   </p>
                 </div>
               </div>
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                isOnline ? "bg-success animate-pulse" : "bg-destructive"
+                isOnline ? "bg-success animate-pulse" : isPartial ? "bg-warning animate-pulse" : "bg-destructive"
               )} />
             </div>
           );

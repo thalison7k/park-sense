@@ -84,10 +84,23 @@ export function getEstadoAtual(historico: VagaHistoricoItem[]) {
   }
 
   const ultimo = historico[historico.length - 1];
+  const lastUpdate = new Date(ultimo.data_hora);
+
+  // Sensor inativo se não recebeu dados nos últimos 20 segundos
+  const now = new Date();
+  const diffSeconds = (now.getTime() - lastUpdate.getTime()) / 1000;
+  const isInactive = diffSeconds > 20;
+
+  if (isInactive) {
+    return {
+      status: "inactive" as const,
+      lastUpdate,
+    };
+  }
 
   return {
     status: ultimo.ocupada?.toLowerCase() === "true" ? ("occupied" as const) : ("free" as const),
-    lastUpdate: new Date(ultimo.data_hora),
+    lastUpdate,
   };
 }
 

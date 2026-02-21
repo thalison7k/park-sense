@@ -464,6 +464,37 @@ MQTT_TOPIC=pi5/estacionamento/vaga/#
 
 ---
 
+## 🏛️ Arquitetura Backend
+
+O backend do sistema ParkSense segue a **arquitetura cliente-servidor** e foi implementado em **Python**, utilizando o framework **Django**. O servidor é responsável por processar requisições HTTP oriundas do frontend, validar os dados recebidos, aplicar as regras de negócio pertinentes e persistir as informações no banco de dados **PostgreSQL**.
+
+### Comunicação com o Frontend
+
+O backend disponibiliza **endpoints REST** que retornam dados estruturados em formato **JSON**, permitindo a comunicação dinâmica e desacoplada com a interface web. Cada vaga do estacionamento (A01 a A40) possui um endpoint individual (`/vaga{id}.json`), que fornece o histórico de ocupação com registros temporais (timestamp) e estado booleano de ocupação.
+
+### Integração com Dispositivos IoT
+
+Conforme demonstrado no repositório de referência, o servidor pode integrar-se a **sistemas externos e dispositivos IoT** por meio do protocolo **MQTT**. Através de um cliente MQTT embarcado no backend, o sistema é capaz de:
+
+- Subscrever-se a tópicos específicos do broker (e.g., `pi5/estacionamento/vaga/#`);
+- Receber e interpretar mensagens publicadas por microcontroladores (ESP32/ESP8266) conectados a sensores ultrassônicos;
+- Registrar automaticamente os eventos de ocupação no banco de dados, incluindo data, hora e identificação da vaga.
+
+### Modelagem de Dados
+
+Os **modelos de dados** (Django Models) são utilizados para representar as entidades do sistema e armazenar estados de ocupação e atividade das vagas. As **views** (ViewSets do Django REST Framework) são responsáveis por consultar o banco de dados e fornecer dados estruturados ao frontend, garantindo a separação entre lógica de acesso a dados e lógica de apresentação.
+
+### Papel Arquitetural
+
+O backend atua como **camada intermediária** entre o usuário, a aplicação web e as fontes externas de dados (sensores IoT), garantindo:
+
+- **Integridade dos dados** — validação e persistência consistente;
+- **Organização da lógica de negócio** — centralização das regras no servidor;
+- **Segurança das informações** — controle de acesso e isolamento entre frontend e processamento interno;
+- **Separação de responsabilidades** — manutenção clara entre a interface do usuário (frontend React) e o processamento de dados (backend Django).
+
+---
+
 ## 📚 Roadmap
 
 - [x] Dashboard de monitoramento em tempo real
@@ -482,16 +513,16 @@ MQTT_TOPIC=pi5/estacionamento/vaga/#
 
 **GAMATEC — Digital Spark**
 
-Projeto desenvolvido como Prova de Conceito para demonstrar integração IoT com tecnologias modernas de desenvolvimento web.
+Projeto desenvolvido como **Projeto Integrador V** (trabalho de faculdade) para demonstrar a integração de sistemas IoT com tecnologias modernas de desenvolvimento web.
 
 ---
 
 ## 📄 Licença
 
-Este projeto é uma PoC educacional. Consulte a equipe GAMATEC para uso comercial.
+Este projeto é um trabalho acadêmico (Projeto Integrador V). Consulte a equipe GAMATEC para uso comercial.
 
 ---
 
 <p align="center">
-  <strong>GAMATEC</strong> — PIV © 2025
+  <strong>GAMATEC</strong> — Projeto Integrador V © 2025
 </p>
