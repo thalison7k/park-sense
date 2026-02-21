@@ -37,7 +37,7 @@ export const StatsCard = ({
 
   return (
     <div className={cn(
-      "stat-card glass-card rounded-xl p-5 border transition-all duration-300 hover:scale-[1.02]",
+      "stat-card glass-card rounded-xl p-5 border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-in",
       variantStyles[variant]
     )}>
       <div className="flex items-start justify-between">

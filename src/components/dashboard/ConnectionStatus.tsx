@@ -1,4 +1,4 @@
-import { Server, Wifi, Clock, Radio } from 'lucide-react';
+import { Server, Cpu, Clock, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ConnectionStatusProps {
@@ -19,8 +19,8 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
       description: isApiConnected ? 'Dados carregados' : 'Sem conexão'
     },
     { 
-      name: 'Gateway IoT', 
-      icon: Wifi, 
+      name: 'Plataforma IoT', 
+      icon: Cpu, 
       status: isApiConnected ? 'online' : 'offline', 
       description: 'Django + PythonAnywhere'
     },
@@ -35,7 +35,7 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
   ];
 
   return (
-    <div className="glass-card rounded-2xl p-6">
+    <div className="glass-card rounded-2xl p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Status da Conexão</h2>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -45,7 +45,7 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
       </div>
 
       <div className="space-y-3">
-        {connections.map((conn) => {
+        {connections.map((conn, index) => {
           const Icon = conn.icon;
           const isOnline = conn.status === 'online';
           const isPartial = conn.status === 'partial';
@@ -53,22 +53,23 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
           return (
             <div
               key={conn.name}
-              className="flex items-center justify-between p-3 rounded-lg bg-secondary/30"
+              className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 transition-all duration-300 hover:bg-secondary/50 hover:translate-x-1"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center",
+                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300",
                   isOnline ? "bg-success/20" : isPartial ? "bg-warning/20" : "bg-destructive/20"
                 )}>
                   <Icon className={cn(
-                    "w-4 h-4",
+                    "w-4 h-4 transition-colors duration-300",
                     isOnline ? "text-success" : isPartial ? "text-warning" : "text-destructive"
                   )} />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{conn.name}</p>
                   <p className={cn(
-                    "text-xs",
+                    "text-xs transition-colors duration-300",
                     isOnline ? "text-success" : isPartial ? "text-warning" : "text-destructive"
                   )}>
                     {isPartial ? 'parcial' : conn.status} — {conn.description}
@@ -76,7 +77,7 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
                 </div>
               </div>
               <div className={cn(
-                "w-2 h-2 rounded-full",
+                "w-2 h-2 rounded-full transition-colors duration-300",
                 isOnline ? "bg-success animate-pulse" : isPartial ? "bg-warning animate-pulse" : "bg-destructive"
               )} />
             </div>
