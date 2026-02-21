@@ -111,7 +111,10 @@ export function useVagas() {
       setRawData(vagasRecord);
 
       // Converte dados da API para o formato do frontend
-      const mappedSpots = Object.entries(vagasRecord).map(([id, historico]) => mapApiToSpot(id, historico));
+      const mappedSpots = Object.entries(vagasRecord)
+        .map(([id, historico]) => mapApiToSpot(id, historico))
+        // Ordena vagas por ID (A01, A02, ..., A40)
+        .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 
       // Atualiza estado das vagas
       setSpots(mappedSpots);

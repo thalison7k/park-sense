@@ -4,7 +4,6 @@ import { Header } from '@/components/dashboard/Header';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { ParkingGrid } from '@/components/dashboard/ParkingGrid';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
-import { SensorControls } from '@/components/dashboard/SensorControls';
 import { ConnectionStatus } from '@/components/dashboard/ConnectionStatus';
 import { useVagas } from '@/hooks/useVagas';
 
@@ -72,8 +71,10 @@ const Index = () => {
             />
           </div>
           <div className="space-y-6">
-            <SensorControls />
-            <ConnectionStatus isApiConnected={isConnected} isMqttConnected={false} />
+            <ConnectionStatus 
+              isApiConnected={isConnected} 
+              sensorStats={{ total: spots.length, online: onlineCount }}
+            />
           </div>
         </section>
 
@@ -93,7 +94,10 @@ const Index = () => {
             <span>— Digital Spark © 2025</span>
           </p>
           <p className="mt-2 text-xs">
-            Desenvolvido pela <span className="text-gradient font-semibold">GAMATEC</span> — PIV
+            Projeto Integrador V — Trabalho de Faculdade
+          </p>
+          <p className="mt-1 text-xs">
+            Desenvolvido pela <span className="text-gradient font-semibold">GAMATEC</span>
           </p>
           <Button 
             variant="outline" 
