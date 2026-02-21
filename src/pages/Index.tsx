@@ -20,7 +20,7 @@ const Index = () => {
       role="main"
       aria-label="Dashboard de Monitoramento de Estacionamento"
     >
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1600px] mx-auto animate-fade-in">
         <Header onlineCount={onlineCount} totalCount={spots.length} />
 
         {/* Stats Grid */}

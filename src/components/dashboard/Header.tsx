@@ -26,7 +26,7 @@ export const Header = ({ onlineCount, totalCount }: HeaderProps) => {
   };
 
   return (
-    <header className="glass-card rounded-2xl p-6 mb-6">
+    <header className="glass-card rounded-2xl p-6 mb-6 animate-slide-up">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="relative">
