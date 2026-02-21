@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BACKEND_URL = "https://25382ca97f25.ngrok-free.app";
+const BACKEND_URL = "https://filipealmeida.pythonanywhere.com";
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -33,7 +33,6 @@ serve(async (req) => {
             const response = await fetch(`${BACKEND_URL}/vaga${id}.json`, {
               method: 'GET',
               headers: {
-                'ngrok-skip-browser-warning': 'true',
                 'User-Agent': 'ParkSense-Proxy/1.0',
                 'Accept': 'application/json',
               },
@@ -74,7 +73,6 @@ serve(async (req) => {
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
-        'ngrok-skip-browser-warning': 'true',
         'User-Agent': 'ParkSense-Proxy/1.0',
         'Accept': 'application/json',
       },

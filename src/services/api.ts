@@ -26,7 +26,7 @@ export interface VagaHistoricoItem {
  * Endpoint REAL: /vagaA01.json
  */
 export async function getVaga(sensor: string): Promise<VagaHistoricoItem[]> {
-  // Faz requisição GET com header para bypass do ngrok
+  // Faz requisição GET ao backend PythonAnywhere
   const response = await fetch(`${BASE_URL}/vaga${sensor}.json`);
 
   // Se resposta não for OK, lança erro
