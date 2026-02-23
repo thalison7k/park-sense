@@ -9,7 +9,7 @@ import { useVagas } from '@/hooks/useVagas';
 
 const Index = () => {
   // Dados sempre da API real
-  const { spots, rawData, stats, isConnected, error, refresh, isLoading } = useVagas();
+  const { spots, rawData, stats, isConnected, isMqttConnected, error, refresh, isLoading } = useVagas();
 
   const onlineCount = spots.filter((s) => s.isOnline).length;
 
@@ -73,6 +73,7 @@ const Index = () => {
           <div className="space-y-6">
             <ConnectionStatus 
               isApiConnected={isConnected} 
+              isMqttConnected={isMqttConnected}
               sensorStats={{ total: spots.length, online: onlineCount }}
             />
           </div>

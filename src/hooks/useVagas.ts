@@ -4,12 +4,20 @@
 
 // Importações do React
 import { useState, useEffect, useCallback, useRef } from "react";
+import mqtt from "mqtt";
 
 // Tipos do projeto
 import { ParkingSpot, ParkingStats } from "@/types/parking";
 
 // Serviço de API para buscar dados do backend
 import { getAllVagas, mapApiToSpot, VagaHistoricoItem } from "@/services/api";
+
+// ===============================
+// Configuração MQTT
+// ===============================
+const MQTT_BROKER = "wss://test.mosquitto.org:8081";
+const SUB_TOPIC = "pi5/estacionamento/vaga/#";
+const TOPIC_PREFIX = "pi5/estacionamento/vaga";
 
 
 // ===============================
@@ -84,6 +92,9 @@ export function useVagas() {
 
   // Status de conexão com a API
   const [isConnected, setIsConnected] = useState(false);
+
+  // Status de conexão MQTT
+  const [isMqttConnected, setIsMqttConnected] = useState(false);
 
   // Ref para evitar múltiplas cargas iniciais
   const initialLoadDone = useRef(false);
@@ -160,16 +171,94 @@ export function useVagas() {
   }, [fetchInitialData]);
 
   // ===============================
+  // Effect para conexão MQTT
+  // ===============================
+
+  useEffect(() => {
+    console.log("[MQTT] Conectando ao broker:", MQTT_BROKER);
+    const client = mqtt.connect(MQTT_BROKER, {
+      reconnectPeriod: 5000,
+      connectTimeout: 10000,
+    });
+
+    client.on("connect", () => {
+      console.log("[MQTT] Conectado! Inscrevendo em:", SUB_TOPIC);
+      setIsMqttConnected(true);
+      client.subscribe(SUB_TOPIC, (err) => {
+        if (err) console.error("[MQTT] Erro ao inscrever:", err);
+        else console.log("[MQTT] Inscrito com sucesso em", SUB_TOPIC);
+      });
+    });
+
+    client.on("message", (topic, message) => {
+      try {
+        // Extrai o ID da vaga do tópico: pi5/estacionamento/vaga/A01 -> A01
+        const vagaId = topic.replace(`${TOPIC_PREFIX}/`, "");
+        const payload = JSON.parse(message.toString());
+
+        console.log(`[MQTT] Mensagem recebida - Vaga ${vagaId}:`, payload);
+
+        // Monta o item de histórico a partir do payload
+        const novoItem: VagaHistoricoItem = {
+          data_hora: payload.data_hora || new Date().toISOString(),
+          ocupada: String(payload.ocupada ?? payload.occupied ?? "False"),
+        };
+
+        // Atualiza rawData
+        setRawData((prev) => {
+          const updated = { ...prev };
+          if (!updated[vagaId]) updated[vagaId] = [];
+          updated[vagaId] = [...updated[vagaId], novoItem];
+          return updated;
+        });
+
+        // Atualiza spots
+        setSpots((prev) => {
+          const updated = prev.map((spot) => {
+            if (spot.id !== vagaId) return spot;
+            return mapApiToSpot(vagaId, [...(spot.occupancyHistory.map(h => ({
+              data_hora: h.timestamp.toISOString(),
+              ocupada: h.status === "occupied" ? "True" : "False",
+            }))), novoItem]);
+          });
+
+          // Se a vaga não existia, adiciona
+          if (!prev.find((s) => s.id === vagaId)) {
+            updated.push(mapApiToSpot(vagaId, [novoItem]));
+            updated.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+          }
+
+          // Recalcula stats
+          setStats(calculateStats(updated));
+          return updated;
+        });
+      } catch (err) {
+        console.error("[MQTT] Erro ao processar mensagem:", err);
+      }
+    });
+
+    client.on("error", (err) => {
+      console.error("[MQTT] Erro:", err);
+      setIsMqttConnected(false);
+    });
+
+    client.on("close", () => {
+      console.log("[MQTT] Desconectado");
+      setIsMqttConnected(false);
+    });
+
+    return () => {
+      console.log("[MQTT] Desconectando...");
+      client.end();
+    };
+  }, []);
+
+  // ===============================
   // Função para refresh manual
   // ===============================
 
-  /**
-   * Força recarregamento dos dados da API
-   */
   const refresh = useCallback(() => {
-    // Reseta flag para permitir nova carga
     initialLoadDone.current = false;
-    // Busca dados novamente
     fetchInitialData();
   }, [fetchInitialData]);
 
@@ -184,6 +273,7 @@ export function useVagas() {
     isLoading,
     error,
     isConnected,
+    isMqttConnected,
     refresh,
   };
 }
