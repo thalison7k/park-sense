@@ -86,10 +86,10 @@ export function getEstadoAtual(historico: VagaHistoricoItem[]) {
   const ultimo = historico[historico.length - 1];
   const lastUpdate = new Date(ultimo.data_hora);
 
-  // Sensor inativo se não recebeu dados nos últimos 20 segundos
+  // Sensor inativo se não recebeu dados nos últimos 30 segundos
   const now = new Date();
   const diffSeconds = (now.getTime() - lastUpdate.getTime()) / 1000;
-  const isInactive = diffSeconds > 20;
+  const isInactive = diffSeconds > 30;
 
   if (isInactive) {
     return {
