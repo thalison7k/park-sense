@@ -1,12 +1,13 @@
-import { Server, Cpu, Clock, Radio } from 'lucide-react';
+import { Server, Cpu, Clock, Radio, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ConnectionStatusProps {
   isApiConnected?: boolean;
+  isMqttConnected?: boolean;
   sensorStats?: { total: number; online: number };
 }
 
-export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: ConnectionStatusProps) => {
+export const ConnectionStatus = ({ isApiConnected = false, isMqttConnected = false, sensorStats }: ConnectionStatusProps) => {
   const sensorOnline = sensorStats ? sensorStats.online : 0;
   const sensorTotal = sensorStats ? sensorStats.total : 0;
   const allSensorsOnline = sensorTotal > 0 && sensorOnline === sensorTotal;
@@ -23,6 +24,12 @@ export const ConnectionStatus = ({ isApiConnected = false, sensorStats }: Connec
       icon: Cpu, 
       status: isApiConnected ? 'online' : 'offline', 
       description: 'Django + PythonAnywhere'
+    },
+    { 
+      name: 'MQTT Broker', 
+      icon: Wifi, 
+      status: isMqttConnected ? 'online' : 'offline', 
+      description: isMqttConnected ? 'Tempo real ativo' : 'Desconectado'
     },
     { 
       name: 'Sensores Ultrassônicos', 
