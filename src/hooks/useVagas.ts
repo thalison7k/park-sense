@@ -194,14 +194,29 @@ export function useVagas() {
       try {
         // Extrai o ID da vaga do tópico: pi5/estacionamento/vaga/A01 -> A01
         const vagaId = topic.replace(`${TOPIC_PREFIX}/`, "");
-        const payload = JSON.parse(message.toString());
+        const raw = message.toString();
+        let ocupadaValue = "False";
 
-        console.log(`[MQTT] Mensagem recebida - Vaga ${vagaId}:`, payload);
+        try {
+          const payload = JSON.parse(raw);
+          if (typeof payload === "object" && payload !== null) {
+            // Formato objeto: { ocupada: "True" } ou { occupied: true }
+            const val = payload.ocupada ?? payload.occupied ?? false;
+            ocupadaValue = String(val).toLowerCase() === "true" ? "True" : "False";
+          } else {
+            // Formato simples: true / false / "True" / "False"
+            ocupadaValue = String(payload).toLowerCase() === "true" ? "True" : "False";
+          }
+        } catch {
+          // Não é JSON válido, trata como string direta
+          ocupadaValue = raw.trim().toLowerCase() === "true" ? "True" : "False";
+        }
 
-        // Monta o item de histórico a partir do payload
+        console.log(`[MQTT] Mensagem recebida - Vaga ${vagaId}: ocupada=${ocupadaValue}`);
+
         const novoItem: VagaHistoricoItem = {
-          data_hora: payload.data_hora || new Date().toISOString(),
-          ocupada: String(payload.ocupada ?? payload.occupied ?? "False"),
+          data_hora: new Date().toISOString(),
+          ocupada: ocupadaValue,
         };
 
         // Atualiza rawData
