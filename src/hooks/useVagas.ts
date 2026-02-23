@@ -269,6 +269,28 @@ export function useVagas() {
   }, []);
 
   // ===============================
+  // Effect para re-avaliar inatividade periodicamente
+  // ===============================
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSpots((prev) => {
+        const updated = prev.map((spot) => {
+          const diffSeconds = (Date.now() - spot.lastUpdate.getTime()) / 1000;
+          if (diffSeconds > 30 && spot.status !== "inactive") {
+            return { ...spot, status: "inactive" as const, isOnline: false };
+          }
+          return spot;
+        });
+        setStats(calculateStats(updated));
+        return updated;
+      });
+    }, 5000); // checa a cada 5 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ===============================
   // Função para refresh manual
   // ===============================
 
