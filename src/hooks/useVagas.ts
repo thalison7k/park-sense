@@ -269,7 +269,7 @@ export function useVagas() {
   }, []);
 
   // ===============================
-  // Effect para re-avaliar inatividade periodicamente
+  // Effect: re-avaliar inatividade a cada 5s
   // ===============================
 
   useEffect(() => {
