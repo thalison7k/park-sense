@@ -2,7 +2,7 @@
 // URL REAL DO BACKEND
 // ===============================
 
-const BASE_URL = "https://filipealmeida.pythonanywhere.com";
+const BASE_URL = `${location.protocol}//${location.hostname}`;
 
 // ===============================
 // Tipos
